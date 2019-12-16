@@ -69,43 +69,26 @@ class AsgiLogToSqlite:
 
         request_headers = dict(scope.get("headers") or [])
 
-        referer = request_headers.get(b"referer", b"").decode("utf8") or None
-        user_agent = request_headers.get(b"user-agent", b"").decode("utf8") or None
-        accept_language = (
-            request_headers.get(b"accept-language", b"").decode("utf8") or None
-        )
+        referer = header(request_headers, "referer")
+        user_agent = header(request_headers, "user-agent")
+        accept_language = header(request_headers, "accept-language")
 
-        content_type = dict(response_headers).get(b"content-type", b"").decode("utf8")
+        content_type = header(dict(response_headers), "content-type")
 
         # Now log to that file
-        with self.db.conn:
-            self.db["requests"].insert(
+        db = self.db
+        with db.conn:
+            db["requests"].insert(
                 {
                     "start": start,
                     "method": scope["method"],
-                    "path": self.db["paths"].lookup({"name": path}),
-                    "query_string": self.db["query_strings"].lookup(
-                        {"name": query_string}
-                    )
-                    if query_string
-                    else None,
-                    "user_agent": self.db["user_agents"].lookup({"name": user_agent})
-                    if user_agent
-                    else None,
-                    "referer": self.db["referers"].lookup({"name": referer})
-                    if referer
-                    else None,
-                    "accept_language": self.db["accept_languages"].lookup(
-                        {"name": accept_language}
-                    )
-                    if accept_language
-                    else None,
+                    "path": lookup(db, "paths", path),
+                    "query_string": lookup(db, "query_strings", query_string),
+                    "user_agent": lookup(db, "user_agents", user_agent),
+                    "referer": lookup(db, "referers", referer),
+                    "accept_language": lookup(db, "accept_languages", accept_language),
                     "http_status": http_status,
-                    "content_type": self.db["content_types"].lookup(
-                        {"name": content_type}
-                    )
-                    if content_type
-                    else None,
+                    "content_type": lookup(db, "content_types", content_type),
                     "client_ip": scope.get("client", (None, None))[0],
                     "duration": end - start,
                     "body_size": body_size,
@@ -113,3 +96,11 @@ class AsgiLogToSqlite:
                 alter=True,
                 foreign_keys=self.lookup_columns,
             )
+
+
+def header(d, name):
+    return d.get(name.encode("utf8"), b"").decode("utf8") or None
+
+
+def lookup(db, table, value):
+    return db[table].lookup({"name": value}) if value else None
