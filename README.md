@@ -6,6 +6,8 @@
 
 ASGI middleware for logging traffic to a SQLite database
 
+See [Logging to SQLite using ASGI middleware](https://simonwillison.net/2019/Dec/16/logging-sqlite-asgi-middleware/) for background on this project.
+
 ## Installation
 
     pip install asgi-log-to-sqlite
