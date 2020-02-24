@@ -22,6 +22,6 @@ setup(
     license="Apache License, Version 2.0",
     version=VERSION,
     py_modules=["asgi_log_to_sqlite"],
-    install_requires=["sqlite_utils"],
+    install_requires=["sqlite_utils~=2.3.1"],
     extras_require={"test": ["pytest", "pytest-asyncio", "asgiref==3.1.2"]},
 )

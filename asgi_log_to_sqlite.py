@@ -21,7 +21,7 @@ class AsgiLogToSqlite:
     def ensure_tables(self):
         for column in self.lookup_columns:
             table = "{}s".format(column)
-            if not self.db[table].exists:
+            if not self.db[table].exists():
                 self.db[table].create({"id": int, "name": str}, pk="id")
         if "requests" not in self.db.table_names():
             self.db["requests"].create(
